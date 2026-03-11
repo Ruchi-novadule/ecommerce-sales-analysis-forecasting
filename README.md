@@ -69,6 +69,12 @@ The dashboard displays:
 - Correlation Heatmap
 - Future Sales Forecast
 
+## Dashboard Preview
+
+![Dashboard](images/dashboard1.jpeg)
+
+![Dashboard](images/dashboard2.jpeg)
+
 ## Author
 
 Ruchi Tiwari

@@ -2,13 +2,16 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.data_cleaning import load_and_clean_data
-from src.forecasting_model import train_model
-import seaborn as sns
-from sklearn.linear_model import LinearRegression
+from src.forecasting_model import train_model, predict_future_sales
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+st.set_page_config(layout="wide")
 
 st.title("E-Commerce Sales Analysis Dashboard")
 
@@ -20,105 +23,96 @@ df["OrderDate"] = pd.to_datetime(df["OrderDate"])
 df["TotalSales"] = df["Quantity"] * df["Price"]
 df["Month"] = df["OrderDate"].dt.month
 
-# Dataset preview
-st.subheader("Dataset Preview")
-st.write(df.head())
+# Sidebar dataset preview
+st.sidebar.header("Dataset Preview")
+st.sidebar.write(df.head())
 
-# Sales by Region
-st.subheader("Sales by Region")
+st.subheader("Sales Dashboard")
 
-region_sales = df.groupby("Region")["TotalSales"].sum()
+# ================= FIRST ROW =================
 
-fig1, ax1 = plt.subplots()
-region_sales.plot(kind="bar", ax=ax1)
+col1, col2 = st.columns(2)
 
-plt.xlabel("Region")
-plt.ylabel("Total Sales")
+with col1:
+    st.write("### Sales by Region")
+    region_sales = df.groupby("Region")["TotalSales"].sum()
 
-st.pyplot(fig1)
+    fig1, ax1 = plt.subplots()
+    region_sales.plot(kind="bar", ax=ax1)
+    ax1.set_xlabel("Region")
+    ax1.set_ylabel("Total Sales")
 
-# Monthly Sales Trend
-st.subheader("Monthly Sales Trend")
+    st.pyplot(fig1)
 
-monthly_sales = df.groupby("Month")["TotalSales"].sum()
+with col2:
+    st.write("### Monthly Sales Trend")
+    monthly_sales = df.groupby("Month")["TotalSales"].sum()
 
-fig2, ax2 = plt.subplots()
-monthly_sales.plot(kind="line", marker="o", ax=ax2)
+    fig2, ax2 = plt.subplots()
+    monthly_sales.plot(kind="line", marker="o", ax=ax2)
+    ax2.set_xlabel("Month")
+    ax2.set_ylabel("Total Sales")
 
-plt.xlabel("Month")
-plt.ylabel("Total Sales")
+    st.pyplot(fig2)
 
-st.pyplot(fig2)
+# ================= SECOND ROW =================
 
-# Sales by Category
-st.subheader("Sales by Category")
+col3, col4 = st.columns(2)
 
-category_sales = df.groupby("Category")["TotalSales"].sum()
+with col3:
+    st.write("### Sales by Category")
 
-fig3, ax3 = plt.subplots()
-category_sales.plot(kind="pie", autopct='%1.1f%%', ax=ax3)
+    category_sales = df.groupby("Category")["TotalSales"].sum()
 
-st.pyplot(fig3)
+    fig3, ax3 = plt.subplots()
+    category_sales.plot(kind="pie", autopct='%1.1f%%', ax=ax3)
 
-# Top Selling Products
-st.subheader("Top Selling Products")
+    st.pyplot(fig3)
 
-top_products = df.groupby("Product")["TotalSales"].sum().sort_values(ascending=False)
+with col4:
+    st.write("### Correlation Heatmap")
 
-st.write(top_products.head())
-st.subheader("Sales Forecast")
+    corr = df[["Quantity","Price","TotalSales","Month"]].corr()
 
-# Features and target
-X = df[["Month","Quantity","Price"]]
-y = df["TotalSales"]
+    fig5, ax5 = plt.subplots()
+    sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax5)
 
-# Train model
-model = train_model(df)
+    st.pyplot(fig5)
 
-# Future data
-future_data = pd.DataFrame({
-    "Month":[4,5,6],
-    "Quantity":[10,12,15],
-    "Price":[200,200,200]
-})
+# ================= THIRD ROW =================
 
-# Prediction
-future_predictions = model.predict(future_data)
+col5, col6 = st.columns(2)
 
-forecast_df = pd.DataFrame({
-    "Month":["April","May","June"],
-    "Predicted Sales": future_predictions
-})
+with col5:
+    st.write("### Top Selling Products")
 
-st.write(forecast_df)
-fig4, ax4 = plt.subplots()
+    top_products = df.groupby("Product")["TotalSales"].sum().sort_values(ascending=False).head(5)
 
-ax4.plot(forecast_df["Month"], forecast_df["Predicted Sales"], marker="o")
+    fig6, ax6 = plt.subplots()
+    top_products.plot(kind="bar", ax=ax6)
 
-ax4.set_title("Future Sales Forecast")
-ax4.set_xlabel("Month")
-ax4.set_ylabel("Predicted Sales")
+    ax6.set_xlabel("Product")
+    ax6.set_ylabel("Total Sales")
 
-st.pyplot(fig4)
-st.subheader("Correlation Heatmap")
+    st.pyplot(fig6)
 
-corr = df[["Quantity","Price","TotalSales","Month"]].corr()
+with col6:
+    st.write("### Sales Forecast")
 
-fig5, ax5 = plt.subplots()
+    model = train_model(df)
 
-sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax5)
+    predictions = predict_future_sales(model)
 
-st.pyplot(fig5)
-from src.forecasting_model import predict_future_sales
+    forecast_df = pd.DataFrame({
+        "Month": ["April","May","June"],
+        "Predicted Sales": predictions
+    })
 
-st.subheader("Sales Forecast")
+    fig7, ax7 = plt.subplots()
 
-predictions = predict_future_sales(model)
+    ax7.plot(forecast_df["Month"], forecast_df["Predicted Sales"], marker="o")
 
-forecast_df = pd.DataFrame({
-    "Month": ["April","May","June"],
-    "Predicted Sales": predictions
-})
+    ax7.set_xlabel("Month")
+    ax7.set_ylabel("Predicted Sales")
 
-st.write(forecast_df)
-st.line_chart(forecast_df.set_index("Month"))
+    st.pyplot(fig7)
