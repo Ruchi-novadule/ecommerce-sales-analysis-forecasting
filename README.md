@@ -71,11 +71,9 @@ The dashboard displays:
 
 ## Dashboard Preview
 
-## Dashboard Preview
+![Dashboard](dashboard/images/dashboard1.jpeg)
 
-![Dashboard](images/dashboard1.jpeg)
-
-![Dashboard](images/dashboard2.jpeg)
+![Dashboard](dashboard/images/dashboard2.jpeg)
 
 ## Author
 
