@@ -71,6 +71,8 @@ The dashboard displays:
 
 ## Dashboard Preview
 
+## Dashboard Preview
+
 ![Dashboard](images/dashboard1.jpeg)
 
 ![Dashboard](images/dashboard2.jpeg)
